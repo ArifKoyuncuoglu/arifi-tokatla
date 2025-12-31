@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Arifi Tokatla</title>
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    background:#000;
+    color:#fff;
+    font-family:Arial,sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+h1{margin:6px}
+#counter,#record{font-size:14px}
+
+#controls{
+    display:flex;
+    gap:8px;
+    margin:6px;
+}
+
+button{
+    padding:6px 10px;
+    border-radius:6px;
+    border:none;
+    cursor:pointer;
+}
+
+#container{
+    position:relative;
+    margin-top:10px;
+}
+
+img{
+    width:70vw;
+    max-width:300px;
+    border-radius:20px;
+    user-select:none;
+}
+
+/* TOKAT */
+.hit{animation:slap .45s ease-out}
+.ultra{animation:ultra .25s ease-out}
+
+@keyframes slap{
+    30%{transform:translateX(60px) rotate(10deg)}
+    60%{transform:translateX(-40px) rotate(-8deg)}
+}
+@keyframes ultra{
+    20%{transform:translateX(90px) scale(1.2) rotate(18deg)}
+    50%{transform:translateX(-70px) scale(.85) rotate(-15deg)}
+}
+
+/* 🟣 KALICI MORLUK */
+.bruise{
+    filter: hue-rotate(300deg) saturate(1.8) brightness(0.9);
+}
+
+/* SERSEM */
+.dizzy{
+    filter: blur(1px);
+}
+
+/* TOKAT İZİ */
+.hand{
+    position:absolute;
+    font-size:32px;
+    animation:fade .8s forwards;
+}
+
+@keyframes fade{
+    to{opacity:0;transform:scale(.5)}
+}
+
+/* BALON */
+.bubble{
+    position:absolute;
+    background:#fff;
+    color:#000;
+    padding:6px 10px;
+    border-radius:12px;
+    font-size:12px;
+    animation:bubble 1.2s forwards;
+}
+
+@keyframes bubble{
+    0%{opacity:0}
+    20%{opacity:1}
+    100%{opacity:0;transform:translateY(-20px)}
+}
+
+/* YILDIZ */
+.star{
+    position:absolute;
+    font-size:22px;
+    animation:fade 1s forwards;
+}
+
+/* EKRAN SARSINTISI */
+.shake{animation:shake .2s}
+@keyframes shake{
+    25%{transform:translateX(-10px)}
+    75%{transform:translateX(10px)}
+}
+
+#achievement{
+    position:fixed;
+    bottom:20px;
+    background:#222;
+    padding:8px 14px;
+    border-radius:10px;
+    opacity:0;
+    transition:.4s;
+}
+</style>
+</head>
+
+<body>
+
+<h1 id="title">ARİFİ TOKATLA 👋</h1>
+<div id="counter">Tokat: 0</div>
+<div id="record">Rekor: 0</div>
+
+<div id="controls">
+    <button onclick="toggleSound()">🔊</button>
+    <button onclick="resetGame()">🔄 Reset</button>
+    <button onclick="share()">📤 Paylaş</button>
+</div>
+
+<div id="container">
+    <img id="arif" src="arif.jpg">
+</div>
+
+<div id="achievement"></div>
+
+<audio id="s1" src="slap1.mp3"></audio>
+<audio id="s2" src="slap2.mp3"></audio>
+<audio id="s3" src="slap3.mp3"></audio>
+
+<script>
+const arif=document.getElementById("arif");
+const container=document.getElementById("container");
+const counter=document.getElementById("counter");
+const title=document.getElementById("title");
+const recordEl=document.getElementById("record");
+const ach=document.getElementById("achievement");
+const sounds=[s1,s2,s3];
+
+const bubbles=["Auu!","LAN!","Yapma!","Yeter!","Tamam!"];
+let hit=0, ultra=false, soundOn=true;
+let record=localStorage.getItem("record")||0;
+recordEl.innerText="Rekor: "+record;
+
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function playSound(){
+    if(!soundOn) return;
+    const s=sounds[Math.floor(Math.random()*sounds.length)];
+    s.currentTime=0; s.play();
+}
+
+function slapMark(){
+    const h=document.createElement("div");
+    h.className="hand";
+    h.innerText="🖐️";
+    h.style.left=Math.random()*200+"px";
+    h.style.top=Math.random()*200+"px";
+    container.appendChild(h);
+    setTimeout(()=>h.remove(),800);
+}
+
+function bubble(){
+    const b=document.createElement("div");
+    b.className="bubble";
+    b.innerText=rand(bubbles);
+    b.style.left=Math.random()*180+"px";
+    b.style.top=(160+Math.random()*40)+"px";
+    container.appendChild(b);
+    setTimeout(()=>b.remove(),1200);
+}
+
+function stars(n){
+    for(let i=0;i<n;i++){
+        const s=document.createElement("div");
+        s.className="star";
+        s.innerText="⭐";
+        s.style.left=Math.random()*200+"px";
+        s.style.top=Math.random()*100+"px";
+        container.appendChild(s);
+        setTimeout(()=>s.remove(),1000);
+    }
+}
+
+function achievement(t){
+    ach.innerText=t;
+    ach.style.opacity=1;
+    setTimeout(()=>ach.style.opacity=0,2000);
+}
+
+function slap(){
+    hit++;
+    counter.innerText="Tokat: "+hit;
+
+    document.body.classList.add("shake");
+    setTimeout(()=>document.body.classList.remove("shake"),200);
+
+    arif.classList.remove("hit","ultra");
+    void arif.offsetWidth;
+
+    if(hit >= 5){
+        arif.classList.add("bruise");   // 🟣 5’ten sonra HEP MOR
+    }
+
+    if(hit > 12){
+        arif.classList.add("dizzy");
+    }
+
+    if(hit >= 30){
+        ultra=true;
+        title.innerText="ULTRA TOKAT MODU 🔥";
+    }
+
+    arif.classList.add(ultra ? "ultra" : "hit");
+
+    playSound();
+    slapMark();
+    bubble();
+    stars(ultra?6:3);
+    navigator.vibrate?.(ultra?[50,30,50]:80);
+
+    if(hit==10) achievement("🏆 10 TOKAT");
+    if(hit==50) achievement("🔥 50 TOKAT");
+    if(hit==69) achievement("😏 nice");
+    if(hit==100) achievement("💀 YETER MANYAK");
+
+    if(hit > record){
+        record = hit;
+        localStorage.setItem("record", record);
+        recordEl.innerText = "Rekor: " + record;
+    }
+}
+
+function toggleSound(){ soundOn=!soundOn }
+
+function resetGame(){
+    hit=0; ultra=false;
+    counter.innerText="Tokat: 0";
+    title.innerText="ARİFİ TOKATLA 👋";
+    arif.className=""; // ⬅️ morluk gider
+    container.querySelectorAll(".hand,.bubble,.star").forEach(e=>e.remove());
+}
+
+function share(){
+    navigator.clipboard.writeText(location.href);
+    achievement("🔗 Link kopyalandı!");
+}
+
+document.addEventListener("click",slap);
+document.addEventListener("touchstart",slap);
+</script>
+
+</body>
+</html>
