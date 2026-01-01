@@ -25,14 +25,15 @@ h1{margin:6px}
 
 #controls{
   display:flex;
-  gap:8px;
+  gap:10px;
   margin:6px;
 }
 
 button{
   padding:6px 10px;
-  border-radius:6px;
+  border-radius:8px;
   border:none;
+  font-size:16px;
   cursor:pointer;
 }
 
@@ -48,119 +49,129 @@ img{
   user-select:none;
 }
 
-/* TOKAT */
-.hit{animation:slap .45s ease-out}
-.ultra{animation:ultra .25s ease-out}
-
+/* TOKAT ANİMASYONU */
+.hit{animation:slap .4s ease-out}
 @keyframes slap{
-  30%{transform:translateX(60px) rotate(10deg)}
-  60%{transform:translateX(-40px) rotate(-8deg)}
-}
-@keyframes ultra{
-  20%{transform:translateX(90px) scale(1.2) rotate(18deg)}
-  50%{transform:translateX(-70px) scale(.85) rotate(-15deg)}
+  30%{transform:translateX(50px) rotate(8deg)}
+  60%{transform:translateX(-40px) rotate(-6deg)}
 }
 
-/* 🟣 MORLUK */
-.bruise-light{
-  filter:hue-rotate(285deg) saturate(1.2) brightness(0.95);
-}
-.bruise-dark{
-  filter:hue-rotate(300deg) saturate(1.6) brightness(0.88);
-}
-.bruise-ultra{
-  filter:hue-rotate(330deg) saturate(2) brightness(0.8);
+/* 🟣 MORLUK – 5’TEN SONRA KALICI */
+.bruise{
+  filter:hue-rotate(290deg) saturate(1.4) brightness(0.9);
 }
 
-/* EFEKTLER */
+/* YAZI / EMOJI */
 .effect{
   position:absolute;
-  font-size:28px;
+  font-size:26px;
   font-weight:bold;
   pointer-events:none;
-  animation:pop 0.8s ease-out forwards;
+  animation:pop .8s forwards;
 }
-
 @keyframes pop{
-  0%{opacity:1; transform:scale(1) translateY(0)}
+  0%{opacity:1; transform:scale(1)}
   100%{opacity:0; transform:scale(1.6) translateY(-40px)}
 }
 
+/* SARSINTI */
 .shake{animation:shake .2s}
 @keyframes shake{
-  25%{transform:translateX(-10px)}
-  75%{transform:translateX(10px)}
+  25%{transform:translateX(-8px)}
+  75%{transform:translateX(8px)}
 }
-
 </style>
 </head>
 
 <body>
 
-<h1 id="title">ARİFİ TOKATLA 👋</h1>
+<h1>ARİFİ TOKATLA 👋</h1>
 <div id="counter">Tokat: 0</div>
 <div id="record">Rekor: 0</div>
 
 <div id="controls">
-  <button onclick="resetGame()">🔄 Reset</button>
-  <button onclick="share()">📤 Paylaş</button>
+  <button id="soundBtn">🔊</button>
+  <button onclick="resetGame()">🔄</button>
+  <button onclick="share()">📤</button>
 </div>
 
 <div id="container">
   <img id="arif" src="arif.jpg">
 </div>
 
+<!-- SESLER -->
+<audio id="s1" src="slap1.mp3" preload="auto"></audio>
+<audio id="s2" src="slap2.mp3" preload="auto"></audio>
+<audio id="s3" src="slap3.mp3" preload="auto"></audio>
+
 <script>
 const arif=document.getElementById("arif");
 const counter=document.getElementById("counter");
-const title=document.getElementById("title");
 const recordEl=document.getElementById("record");
 const container=document.getElementById("container");
+const soundBtn=document.getElementById("soundBtn");
 
-let hit=0, ultra=false;
+const sounds=[
+  document.getElementById("s1"),
+  document.getElementById("s2"),
+  document.getElementById("s3")
+];
+
+const effects=["Auu!","Off!","💥","⭐","✨","👋","Ah be!"];
+
+let hit=0;
+let soundOn=true;
+let audioUnlocked=false;
 let record=localStorage.getItem("record")||0;
 recordEl.innerText="Rekor: "+record;
 
-const texts=["Auu!","Off!","Ah be!","Yavaş!","😵‍💫","💥","⭐","✨","👋"];
-
-function randomEffect(){
-  const el=document.createElement("div");
-  el.className="effect";
-  el.innerText=texts[Math.floor(Math.random()*texts.length)];
-
-  el.style.left=Math.random()*70+"%";
-  el.style.top=Math.random()*60+"%";
-
-  container.appendChild(el);
-  setTimeout(()=>el.remove(),800);
+/* 🔓 MOBİL SES UNLOCK */
+function unlockAudio(){
+  if(audioUnlocked) return;
+  sounds.forEach(s=>{
+    s.volume=0.9;
+    s.play().then(()=>s.pause()).catch(()=>{});
+  });
+  audioUnlocked=true;
 }
 
-function applyBruise(){
-  if(hit>=30) arif.classList.add("bruise-ultra");
-  else if(hit>=15) arif.classList.add("bruise-dark");
-  else if(hit>=5) arif.classList.add("bruise-light");
+/* 🔊 SES */
+function playSound(){
+  if(!soundOn || !audioUnlocked) return;
+  const s=sounds[Math.floor(Math.random()*sounds.length)];
+  s.currentTime=0;
+  s.play();
+}
+
+/* 🎉 YAZI / EMOJI */
+function spawnEffect(){
+  const e=document.createElement("div");
+  e.className="effect";
+  e.innerText=effects[Math.floor(Math.random()*effects.length)];
+  e.style.left=Math.random()*70+"%";
+  e.style.top=Math.random()*60+"%";
+  container.appendChild(e);
+  setTimeout(()=>e.remove(),800);
 }
 
 function slap(){
+  unlockAudio();
+
   hit++;
   counter.innerText="Tokat: "+hit;
 
   document.body.classList.add("shake");
   setTimeout(()=>document.body.classList.remove("shake"),200);
 
-  arif.classList.remove("hit","ultra");
+  arif.classList.remove("hit");
   void arif.offsetWidth;
+  arif.classList.add("hit");
 
-  applyBruise();
+  if(hit>=5) arif.classList.add("bruise");
 
-  if(hit>=30){
-    ultra=true;
-    title.innerText="ULTRA TOKAT MODU 🔥";
-  }
-
-  arif.classList.add(ultra?"ultra":"hit");
-
-  for(let i=0;i<3;i++) randomEffect();
+  playSound();
+  spawnEffect();
+  spawnEffect();
 
   if(hit>record){
     record=hit;
@@ -170,9 +181,8 @@ function slap(){
 }
 
 function resetGame(){
-  hit=0; ultra=false;
+  hit=0;
   counter.innerText="Tokat: 0";
-  title.innerText="ARİFİ TOKATLA 👋";
   arif.className="";
 }
 
@@ -181,6 +191,12 @@ function share(){
   alert("Link kopyalandı 😎");
 }
 
+soundBtn.onclick=()=>{
+  soundOn=!soundOn;
+  soundBtn.innerText=soundOn?"🔊":"🔇";
+};
+
+/* ☝️ TEK EVENT – ÇİFT TIKLAMA YOK */
 document.addEventListener("pointerdown",e=>{
   e.preventDefault();
   slap();
