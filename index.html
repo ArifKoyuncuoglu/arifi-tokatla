@@ -76,7 +76,7 @@ img{
   box-shadow: inset 0 0 45px rgba(180,0,80,0.6);
 }
 
-/* DİZİZY MORU EZMESİN */
+/* MOR KALICI – ASLA KALKMAZ */
 .dizzy{
   backdrop-filter: blur(1px);
 }
@@ -126,22 +126,42 @@ const recordEl=document.getElementById("record");
 const ach=document.getElementById("achievement");
 
 const soundFiles=["slap1.mp3","slap2.mp3","slap3.mp3"];
+let soundPool=[];
+let audioUnlocked=false;
 
 let hit=0, ultra=false, soundOn=true;
 let record=localStorage.getItem("record")||0;
 recordEl.innerText="Rekor: "+record;
 
-/* ✅ MOBİL SES FIX */
-function playSound(){
-  if(!soundOn) return;
-  const audio=new Audio(
-    soundFiles[Math.floor(Math.random()*soundFiles.length)]
-  );
-  audio.volume=0.9;
-  audio.play();
+/* 🔓 SES UNLOCK – MOBİL GARANTİ */
+function unlockAudio(){
+  if(audioUnlocked) return;
+  soundFiles.forEach(src=>{
+    const a=new Audio(src);
+    a.volume=0.9;
+    a.play().then(()=>a.pause()).catch(()=>{});
+    soundPool.push(a);
+  });
+  audioUnlocked=true;
 }
 
-/* 🔑 MORLUK KALICI */
+/* 🔊 SES */
+function playSound(){
+  if(!soundOn || !audioUnlocked) return;
+  const base=soundPool[Math.floor(Math.random()*soundPool.length)];
+  const s=base.cloneNode();
+  s.volume=0.9;
+  s.play();
+}
+
+/* 📳 TİTREŞİM (Android) */
+function vibrate(){
+  if(navigator.vibrate){
+    navigator.vibrate(ultra?[60,30,60]:40);
+  }
+}
+
+/* 🟣 MORLUK */
 function applyBruise(){
   if(hit>=30) arif.classList.add("bruise-ultra");
   else if(hit>=15) arif.classList.add("bruise-dark");
@@ -149,6 +169,8 @@ function applyBruise(){
 }
 
 function slap(){
+  if(!audioUnlocked) unlockAudio();
+
   hit++;
   counter.innerText="Tokat: "+hit;
 
@@ -168,6 +190,7 @@ function slap(){
 
   arif.classList.add(ultra?"ultra":"hit");
   playSound();
+  vibrate();
 
   if(hit>record){
     record=hit;
@@ -192,11 +215,11 @@ function share(){
   setTimeout(()=>ach.style.opacity=0,1500);
 }
 
-/* TEK EVENT – MOBİL + PC */
-document.addEventListener("pointerdown", e=>{
+/* ☝️ TEK EVENT – ÇİFT ALGILAMA YOK */
+document.addEventListener("pointerdown",e=>{
   e.preventDefault();
   slap();
-});
+},{passive:false});
 </script>
 
 </body>
