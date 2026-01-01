@@ -46,7 +46,6 @@ img{
   max-width:300px;
   border-radius:20px;
   user-select:none;
-  -webkit-transform: translateZ(0);
 }
 
 /* TOKAT */
@@ -65,38 +64,34 @@ img{
 /* 🟣 MORLUK */
 .bruise-light{
   filter:hue-rotate(285deg) saturate(1.2) brightness(0.95);
-  box-shadow: inset 0 0 25px rgba(120,0,150,0.35);
 }
 .bruise-dark{
   filter:hue-rotate(300deg) saturate(1.6) brightness(0.88);
-  box-shadow: inset 0 0 35px rgba(90,0,130,0.45);
 }
 .bruise-ultra{
-  filter:hue-rotate(330deg) saturate(2) brightness(0.8) contrast(1.1);
-  box-shadow: inset 0 0 45px rgba(180,0,80,0.6);
+  filter:hue-rotate(330deg) saturate(2) brightness(0.8);
 }
 
-/* MOR KALICI – ASLA KALKMAZ */
-.dizzy{
-  backdrop-filter: blur(1px);
+/* EFEKTLER */
+.effect{
+  position:absolute;
+  font-size:28px;
+  font-weight:bold;
+  pointer-events:none;
+  animation:pop 0.8s ease-out forwards;
 }
 
-/* SARSINTI */
+@keyframes pop{
+  0%{opacity:1; transform:scale(1) translateY(0)}
+  100%{opacity:0; transform:scale(1.6) translateY(-40px)}
+}
+
 .shake{animation:shake .2s}
 @keyframes shake{
   25%{transform:translateX(-10px)}
   75%{transform:translateX(10px)}
 }
 
-#achievement{
-  position:fixed;
-  bottom:20px;
-  background:#222;
-  padding:8px 14px;
-  border-radius:10px;
-  opacity:0;
-  transition:.4s;
-}
 </style>
 </head>
 
@@ -107,7 +102,6 @@ img{
 <div id="record">Rekor: 0</div>
 
 <div id="controls">
-  <button onclick="toggleSound()">🔊</button>
   <button onclick="resetGame()">🔄 Reset</button>
   <button onclick="share()">📤 Paylaş</button>
 </div>
@@ -116,52 +110,31 @@ img{
   <img id="arif" src="arif.jpg">
 </div>
 
-<div id="achievement"></div>
-
 <script>
 const arif=document.getElementById("arif");
 const counter=document.getElementById("counter");
 const title=document.getElementById("title");
 const recordEl=document.getElementById("record");
-const ach=document.getElementById("achievement");
+const container=document.getElementById("container");
 
-const soundFiles=["slap1.mp3","slap2.mp3","slap3.mp3"];
-let soundPool=[];
-let audioUnlocked=false;
-
-let hit=0, ultra=false, soundOn=true;
+let hit=0, ultra=false;
 let record=localStorage.getItem("record")||0;
 recordEl.innerText="Rekor: "+record;
 
-/* 🔓 SES UNLOCK – MOBİL GARANTİ */
-function unlockAudio(){
-  if(audioUnlocked) return;
-  soundFiles.forEach(src=>{
-    const a=new Audio(src);
-    a.volume=0.9;
-    a.play().then(()=>a.pause()).catch(()=>{});
-    soundPool.push(a);
-  });
-  audioUnlocked=true;
+const texts=["Auu!","Off!","Ah be!","Yavaş!","😵‍💫","💥","⭐","✨","👋"];
+
+function randomEffect(){
+  const el=document.createElement("div");
+  el.className="effect";
+  el.innerText=texts[Math.floor(Math.random()*texts.length)];
+
+  el.style.left=Math.random()*70+"%";
+  el.style.top=Math.random()*60+"%";
+
+  container.appendChild(el);
+  setTimeout(()=>el.remove(),800);
 }
 
-/* 🔊 SES */
-function playSound(){
-  if(!soundOn || !audioUnlocked) return;
-  const base=soundPool[Math.floor(Math.random()*soundPool.length)];
-  const s=base.cloneNode();
-  s.volume=0.9;
-  s.play();
-}
-
-/* 📳 TİTREŞİM (Android) */
-function vibrate(){
-  if(navigator.vibrate){
-    navigator.vibrate(ultra?[60,30,60]:40);
-  }
-}
-
-/* 🟣 MORLUK */
 function applyBruise(){
   if(hit>=30) arif.classList.add("bruise-ultra");
   else if(hit>=15) arif.classList.add("bruise-dark");
@@ -169,8 +142,6 @@ function applyBruise(){
 }
 
 function slap(){
-  if(!audioUnlocked) unlockAudio();
-
   hit++;
   counter.innerText="Tokat: "+hit;
 
@@ -181,7 +152,6 @@ function slap(){
   void arif.offsetWidth;
 
   applyBruise();
-  if(hit>12) arif.classList.add("dizzy");
 
   if(hit>=30){
     ultra=true;
@@ -189,8 +159,8 @@ function slap(){
   }
 
   arif.classList.add(ultra?"ultra":"hit");
-  playSound();
-  vibrate();
+
+  for(let i=0;i<3;i++) randomEffect();
 
   if(hit>record){
     record=hit;
@@ -198,8 +168,6 @@ function slap(){
     recordEl.innerText="Rekor: "+record;
   }
 }
-
-function toggleSound(){ soundOn=!soundOn }
 
 function resetGame(){
   hit=0; ultra=false;
@@ -210,12 +178,9 @@ function resetGame(){
 
 function share(){
   navigator.clipboard.writeText(location.href);
-  ach.innerText="🔗 Link kopyalandı!";
-  ach.style.opacity=1;
-  setTimeout(()=>ach.style.opacity=0,1500);
+  alert("Link kopyalandı 😎");
 }
 
-/* ☝️ TEK EVENT – ÇİFT ALGILAMA YOK */
 document.addEventListener("pointerdown",e=>{
   e.preventDefault();
   slap();
