@@ -81,39 +81,6 @@ img{
   backdrop-filter: blur(1px);
 }
 
-/* TOKAT İZİ */
-.hand{
-  position:absolute;
-  font-size:32px;
-  animation:fade .8s forwards;
-}
-@keyframes fade{
-  to{opacity:0;transform:scale(.5)}
-}
-
-/* BALON */
-.bubble{
-  position:absolute;
-  background:#fff;
-  color:#000;
-  padding:6px 10px;
-  border-radius:12px;
-  font-size:12px;
-  animation:bubble 1.2s forwards;
-}
-@keyframes bubble{
-  0%{opacity:0}
-  20%{opacity:1}
-  100%{opacity:0;transform:translateY(-20px)}
-}
-
-/* YILDIZ */
-.star{
-  position:absolute;
-  font-size:22px;
-  animation:fade 1s forwards;
-}
-
 /* SARSINTI */
 .shake{animation:shake .2s}
 @keyframes shake{
@@ -151,31 +118,27 @@ img{
 
 <div id="achievement"></div>
 
-<audio id="s1" src="slap1.mp3"></audio>
-<audio id="s2" src="slap2.mp3"></audio>
-<audio id="s3" src="slap3.mp3"></audio>
-
 <script>
 const arif=document.getElementById("arif");
-const container=document.getElementById("container");
 const counter=document.getElementById("counter");
 const title=document.getElementById("title");
 const recordEl=document.getElementById("record");
 const ach=document.getElementById("achievement");
-const sounds=[s1,s2,s3];
 
-const bubbles=["Auu!","LAN!","Yapma!","Yeter!","Tamam!"];
+const soundFiles=["slap1.mp3","slap2.mp3","slap3.mp3"];
+
 let hit=0, ultra=false, soundOn=true;
 let record=localStorage.getItem("record")||0;
 recordEl.innerText="Rekor: "+record;
 
-const rand=a=>a[Math.floor(Math.random()*a.length)];
-
+/* ✅ MOBİL SES FIX */
 function playSound(){
   if(!soundOn) return;
-  const s=rand(sounds);
-  s.currentTime=0;
-  s.play();
+  const audio=new Audio(
+    soundFiles[Math.floor(Math.random()*soundFiles.length)]
+  );
+  audio.volume=0.9;
+  audio.play();
 }
 
 /* 🔑 MORLUK KALICI */
@@ -204,8 +167,13 @@ function slap(){
   }
 
   arif.classList.add(ultra?"ultra":"hit");
-
   playSound();
+
+  if(hit>record){
+    record=hit;
+    localStorage.setItem("record",record);
+    recordEl.innerText="Rekor: "+record;
+  }
 }
 
 function toggleSound(){ soundOn=!soundOn }
@@ -224,7 +192,7 @@ function share(){
   setTimeout(()=>ach.style.opacity=0,1500);
 }
 
-/* TEK EVENT */
+/* TEK EVENT – MOBİL + PC */
 document.addEventListener("pointerdown", e=>{
   e.preventDefault();
   slap();
